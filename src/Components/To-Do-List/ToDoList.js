@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import TaskCreator from "./TaskCreator";
 import TasksList from "./TasksList";
 import ToDoFooter from "./ToDoFooter";
-
+import { getTasks } from "./Services";
 import "./ToDoList.css";
 
 class ToDoList extends Component {
@@ -13,16 +13,7 @@ class ToDoList extends Component {
       filter: "all"
     };
 
-    fetch("https://repetitora.net/api/JS/Tasks?widgetId=789789&count=30", {
-      method: "GET",
-
-      headers: {
-        "content-type": "application/x-www-form-urlencoded: charset=UTF-8",
-        accept: "application/json"
-      },
-      mode: "cors"
-    })
-      .then(result => result.json())
+    getTasks(789789)
       .then(tasksFromServer => {
         let tasks = tasksFromServer.map(itemFromserver => {
           return {
