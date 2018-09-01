@@ -6,21 +6,38 @@ import ToDoFooter from "./ToDoFooter";
 import "./ToDoList.css";
 
 class ToDoList extends Component {
-  state = {
-    tasks: [
-      {
-        id: 0,
-        title: "learh js",
-        isDone: false
+  constructor(props) {
+    super(props);
+    this.state = {
+      tasks: [],
+      filter: "all"
+    };
+
+    fetch("https://repetitora.net/api/JS/Tasks?widgetId=789789&count=30", {
+      method: "GET",
+
+      headers: {
+        "content-type": "application/x-www-form-urlencoded: charset=UTF-8",
+        accept: "application/json"
       },
-      {
-        id: 1,
-        title: "learn react",
-        isDone: false
-      }
-    ],
-    filter: "all"
-  };
+      mode: "cors"
+    })
+      .then(result => result.json())
+      .then(tasksFromServer => {
+        let tasks = tasksFromServer.map(itemFromserver => {
+          return {
+            id: itemFromserver.id,
+            title: itemFromserver.title,
+            isDone: itemFromserver.done
+          };
+        });
+
+        this.setState({
+          tasks: tasks
+        });
+      })
+      .catch(error => console.log("error", error));
+  }
 
   clearCompleted = () => {
     this.setState({
