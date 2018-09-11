@@ -1,17 +1,34 @@
 import React, { Component } from "react";
-import TaskCreator from "./TaskCreator";
+import { createStore } from "redux";
+import TodoListFormContainer from "./TodoListFormContainer";
 import TasksList from "./TasksList";
 import ToDoFooter from "./ToDoFooter";
 import { getTasks } from "./Services";
+import { todoListReducer } from "./redux/reducers";
+import {
+  putTasksActionCreator,
+  clearComletedCreator,
+  changeFilterCreator,
+  putTaskCreator,
+  updateTaskCreator,
+  deleteTaskCreator
+} from "./redux/actions";
 import "./ToDoList.css";
 
 class ToDoList extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      tasks: [],
-      filter: "all"
-    };
+
+    // var reducers = combineReducers({ todoListReducer });
+    this.store = createStore(todoListReducer);
+    let state = this.store.getState();
+
+    this.state = state;
+
+    this.store.subscribe(() => {
+      let state = this.store.getState();
+      this.setState(state);
+    });
 
     getTasks(789789)
       .then(tasksFromServer => {
@@ -23,52 +40,31 @@ class ToDoList extends Component {
           };
         });
 
-        this.setState({
-          tasks: tasks
-        });
+        let action = putTasksActionCreator(tasks);
+
+        this.store.dispatch(action);
       })
       .catch(error => console.log("error", error));
   }
 
   clearCompleted = () => {
-    this.setState({
-      tasks: this.state.tasks.filter(t => !t.isDone)
-    });
+    this.store.dispatch(clearComletedCreator);
   };
 
   changeFilter = filterValue => {
-    this.setState({
-      filter: filterValue
-    });
+    this.store.dispatch(changeFilterCreator(filterValue));
   };
 
   putTaskToState = task => {
-    this.setState({
-      tasks: [...this.state.tasks, task]
-    });
+    this.store.dispatch(putTaskCreator(task));
   };
 
   deleteTask = taskId => {
-    this.setState({
-      tasks: this.state.tasks.filter(item => {
-        return item.id !== taskId;
-      })
-    });
+    this.store.dispatch(deleteTaskCreator(taskId));
   };
 
   updateTask = task => {
-    const newTaskList = [...this.state.tasks];
-
-    newTaskList.forEach(item => {
-      if (item.id === task.id) {
-        item.isDone = task.isDone;
-        return;
-      }
-    });
-
-    this.setState({
-      tasks: newTaskList
-    });
+    this.store.dispatch(updateTaskCreator(task));
   };
 
   render() {
@@ -81,7 +77,7 @@ class ToDoList extends Component {
     return (
       <div className="todolist">
         <h3>To-Do List</h3>
-        <TaskCreator onCreate={this.putTaskToState} />
+        <TodoListFormContainer onCreate={this.putTaskToState} />
         <TasksList
           tasks={filteredTasks}
           onDelete={this.deleteTask}

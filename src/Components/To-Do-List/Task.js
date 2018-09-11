@@ -1,34 +1,88 @@
 import React, { Component } from "react";
+import { updateTask, deleteTask } from "./Services";
 import "./ToDoList.css";
 
 class Task extends Component {
   constructor(props) {
     super(props);
-
+    this.state = {
+      editMode: false,
+      title: props.task.title
+    };
     this.parentDeleteCallback = props.deleteCallback;
     this.parentUpdateCallback = props.updateCallback;
   }
 
-  deleteTask = () => {
-    this.parentDeleteCallback(this.props.task.id);
+  deleteTask = e => {
+    deleteTask(789789, this.props.task.id).then(data => {
+      this.parentDeleteCallback(this.props.task.id);
+    });
   };
 
   toggleTaskStatus = e => {
-    let taskNew = { ...this.props.task };
-    taskNew.isDone = !taskNew.isDone;
-    this.parentUpdateCallback(taskNew);
+    let task = {
+      ...this.props.task
+    };
+    task.isDone = !task.isDone;
+
+    updateTask(789789, task.id, null, task.isDone).then(data => {
+      this.setState({
+        editMode: false
+      });
+      this.parentUpdateCallback(task);
+    });
+  };
+
+  goToEditMode = () => {
+    this.setState({
+      editMode: true
+    });
+  };
+
+  saveTitle = e => {
+    const newTitle = e.target.value;
+    const task = {
+      ...this.props.task
+    };
+    task.title = newTitle;
+    updateTask(789789, task.id, newTitle, null).then(data => {
+      this.setState({
+        editMode: false
+      });
+      this.parentUpdateCallback(task);
+    });
+  };
+
+  changeTitle = e => {
+    this.setState({
+      title: e.target.value
+    });
   };
 
   render() {
+    const { isDone } = this.props.task;
+    const { title } = this.state;
+    let displayElement = "";
+    if (this.state.editMode) {
+      displayElement = (
+        <input
+          value={title}
+          onChange={this.changeTitle}
+          onBlur={this.saveTitle}
+        />
+      );
+    } else {
+      displayElement = <span onDoubleClick={this.goToEditMode}>{title}</span>;
+    }
     return (
-      <li className={this.props.task.isDone ? "task done" : "task"}>
+      <li className={isDone ? "task done" : "task"}>
         <input
           type="checkbox"
           className="checTask"
-          // checked={this.props.task.isDone}
+          checked={isDone}
           onClick={this.toggleTaskStatus}
         />
-        {this.props.task.title}
+        {displayElement}
         <span className="delete" onClick={this.deleteTask}>
           X
         </span>
